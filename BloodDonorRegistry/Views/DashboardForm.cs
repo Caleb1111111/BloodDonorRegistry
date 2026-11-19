@@ -9,14 +9,16 @@ public class DashboardForm : Form
 {
     private readonly string _officerName;
     private readonly DonorController _donors;
+    private readonly DonationController _donations;
     private readonly Panel _host = new() { Dock = DockStyle.Fill, BackColor = UiTheme.Paper };
     private readonly List<Button> _navButtons = new();
     private Button? _active;
 
-    public DashboardForm(string officerName, DonorController donors)
+    public DashboardForm(string officerName, DonorController donors, DonationController donations)
     {
         _officerName = officerName;
         _donors = donors;
+        _donations = donations;
 
         Text = "LifeDrop";
         ClientSize = new Size(1100, 680);
@@ -46,6 +48,7 @@ public class DashboardForm : Form
         Control page = name switch
         {
             "Dashboard" => BuildHomePage(),
+            "Donations" => new DonationsPage(_donations, _donors),
             "Donors" => new DonorsPage(_donors),
             _ => BuildComingSoon(name)
         };

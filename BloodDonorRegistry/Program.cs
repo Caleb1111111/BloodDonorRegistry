@@ -27,6 +27,7 @@ internal static class Program
         if (login.ShowDialog() == DialogResult.OK)
             Application.Run(new DashboardForm(
                 login.LoggedInName,
-                new DonorController(new DonorRepository())));
+                new DonorController(new DonorRepository()),
+                new DonationController(new DonationRepository())));
     }
 }   

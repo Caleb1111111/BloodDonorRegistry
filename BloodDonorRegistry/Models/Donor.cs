@@ -20,4 +20,6 @@ public class Donor
             return age;
         }
     }
+
+    public override string ToString() => $"{FullName} – {BloodGroup}";
 }
