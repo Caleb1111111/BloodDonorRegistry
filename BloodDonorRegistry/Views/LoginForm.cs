@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using BloodDonorRegistry.Controllers;
+using System.Drawing;
 using System.Windows.Forms;
 using BloodDonorRegistry.Helpers;
 
@@ -10,10 +11,13 @@ public class LoginForm : Form
     private readonly TextBox _password = new();
     private readonly Label _error = new();
 
+    private readonly AuthController _auth;
+
     public string LoggedInName { get; private set; } = "";
 
-    public LoginForm()
+    public LoginForm(AuthController auth)
     {
+        _auth = auth;
         Text = "LifeDrop – Sign in";
         ClientSize = new Size(820, 480);
         FormBorderStyle = FormBorderStyle.FixedSingle;
@@ -99,8 +103,20 @@ public class LoginForm : Form
             return;
         }
 
-        // TEMPORARY: accepts any login. Stage 6 replaces this with AuthController.
-        LoggedInName = user;
-        DialogResult = DialogResult.OK;
+        try
+        {
+            var found = _auth.Login(user, _password.Text);
+            if (found == null)
+            {
+                _error.Text = "Wrong username or password.";
+                return;
+            }
+            LoggedInName = found.FullName;
+            DialogResult = DialogResult.OK;
+        }
+        catch (Exception)
+        {
+            _error.Text = "Can't reach the database. Is PostgreSQL running?";
+        }
     }
 }
