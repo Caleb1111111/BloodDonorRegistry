@@ -1,4 +1,4 @@
-using BloodDonorRegistry.Data; 
+using BloodDonorRegistry.Data;
 
 namespace BloodDonorRegistry
 {
@@ -10,18 +10,19 @@ namespace BloodDonorRegistry
         [STAThread]
         static void Main()
         {
-            try
-            {
-                using var conn = DbConnectionFactory.Create();
-                conn.Open();
-                MessageBox.Show("Connected to PostgreSQL!");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Connection failed: " + ex.Message);
-            }
+            //try
+            //{
+            // using var conn = DbConnectionFactory.Create();
+            //conn.Open();
+            //MessageBox.Show("Connected to PostgreSQL!");
+            // }
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show("Connection failed: " + ex.Message);
+            //}
             ApplicationConfiguration.Initialize();
             Application.Run(new DashboardForm());
+            //}
         }
     }
 }
