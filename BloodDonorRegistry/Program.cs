@@ -1,28 +1,16 @@
-using BloodDonorRegistry.Data;
+using BloodDonorRegistry.Views;
 
-namespace BloodDonorRegistry
+namespace BloodDonorRegistry;
+
+internal static class Program
 {
-    internal static class Program
+    [STAThread]
+    static void Main()
     {
-        /// <summary>
-        ///  The main entry point for the application.
-        /// </summary>
-        [STAThread]
-        static void Main()
-        {
-            //try
-            //{
-            // using var conn = DbConnectionFactory.Create();
-            //conn.Open();
-            //MessageBox.Show("Connected to PostgreSQL!");
-            // }
-            //catch (Exception ex)
-            //{
-            //    MessageBox.Show("Connection failed: " + ex.Message);
-            //}
-            ApplicationConfiguration.Initialize();
-            Application.Run(new DashboardForm());
-            //}
-        }
+        ApplicationConfiguration.Initialize();
+
+        using var login = new LoginForm();
+        if (login.ShowDialog() == DialogResult.OK)
+            Application.Run(new DashboardForm(login.LoggedInName));
     }
 }
