@@ -8,17 +8,15 @@ namespace BloodDonorRegistry.Views;
 public class DashboardForm : Form
 {
     private readonly string _officerName;
-    private readonly DonorController _donors;
-    private readonly DonationController _donations;
+    private readonly AppServices _services;
     private readonly Panel _host = new() { Dock = DockStyle.Fill, BackColor = UiTheme.Paper };
     private readonly List<Button> _navButtons = new();
     private Button? _active;
 
-    public DashboardForm(string officerName, DonorController donors, DonationController donations)
+    public DashboardForm(string officerName, AppServices services)
     {
         _officerName = officerName;
-        _donors = donors;
-        _donations = donations;
+        _services = services;
 
         Text = "LifeDrop";
         ClientSize = new Size(1100, 680);
@@ -48,10 +46,15 @@ public class DashboardForm : Form
         Control page = name switch
         {
             "Dashboard" => BuildHomePage(),
-            "Donations" => new DonationsPage(_donations, _donors),
-            "Donors" => new DonorsPage(_donors),
+            "Donors" => new DonorsPage(_services.Donors),
+            "Donations" => new DonationsPage(_services.Donations, _services.Donors),
+            "Readiness" => new ReadinessPage(_services.Readiness),
+            "Reports" => new ReportsPage(_services.Reports),
+            "Emergency finder" => new EmergencyPage(_services.Readiness),
+            "Settings" => new SettingsPage(_services.Settings),
             _ => BuildComingSoon(name)
         };
+
         ShowPage(page);
     }
 
@@ -157,16 +160,32 @@ public class DashboardForm : Form
             Location = new Point(39, 76)
         });
 
+        var donorsCard = new StatCard("Registered donors");
+        var readyCard = new StatCard("Ready to give today");
+        var monthCard = new StatCard("Donations this month");
+
         var cards = new FlowLayoutPanel
         {
             Location = new Point(36, 125),
-            Size = new Size(780, 120),
+            Size = new Size(820, 120),
             BackColor = UiTheme.Paper
         };
-        cards.Controls.Add(Card("Registered donors"));
-        cards.Controls.Add(Card("Ready to give today"));
-        cards.Controls.Add(Card("Donations this month"));
+        cards.Controls.Add(donorsCard);
+        cards.Controls.Add(readyCard);
+        cards.Controls.Add(monthCard);
         page.Controls.Add(cards);
+
+        try
+        {
+            var summary = _services.Reports.GetSummary();
+            donorsCard.SetValue(summary.TotalDonors.ToString());
+            readyCard.SetValue(summary.ReadyToday.ToString());
+            monthCard.SetValue(summary.DonationsThisMonth.ToString());
+        }
+        catch (Exception)
+        {
+            // Leave the cards showing "–" if the database can't be reached
+        }
 
         return page;
     }
@@ -191,29 +210,5 @@ public class DashboardForm : Form
         return page;
     }
 
-    private static Panel Card(string caption)
-    {
-        var card = new Panel { Size = new Size(240, 104), BackColor = Color.White, Margin = new Padding(0, 0, 20, 0) };
-        card.Paint += (s, e) =>
-        {
-            using var pen = new Pen(Color.FromArgb(240, 224, 221));
-            e.Graphics.DrawRectangle(pen, 0, 0, card.Width - 1, card.Height - 1);
-        };
-        card.Controls.Add(new Label
-        {
-            Text = caption,
-            ForeColor = UiTheme.Muted,
-            AutoSize = true,
-            Location = new Point(18, 16)
-        });
-        card.Controls.Add(new Label
-        {
-            Text = "–",
-            Font = new Font("Segoe UI Semibold", 28f),
-            ForeColor = UiTheme.Crimson,
-            AutoSize = true,
-            Location = new Point(16, 42)
-        });
-        return card;
-    }
+    
 }   

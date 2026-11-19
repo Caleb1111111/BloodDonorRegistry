@@ -1,5 +1,3 @@
-using BloodDonorRegistry.Controllers;
-using BloodDonorRegistry.Data;
 using BloodDonorRegistry.Views;
 
 namespace BloodDonorRegistry;
@@ -11,10 +9,10 @@ internal static class Program
     {
         ApplicationConfiguration.Initialize();
 
-        var auth = new AuthController(new UserRepository());
+        var services = new AppServices();
         try
         {
-            auth.EnsureDefaultOfficer();
+            services.Auth.EnsureDefaultOfficer();
         }
         catch (Exception ex)
         {
@@ -23,11 +21,8 @@ internal static class Program
             return;
         }
 
-        using var login = new LoginForm(auth);
+        using var login = new LoginForm(services.Auth);
         if (login.ShowDialog() == DialogResult.OK)
-            Application.Run(new DashboardForm(
-                login.LoggedInName,
-                new DonorController(new DonorRepository()),
-                new DonationController(new DonationRepository())));
+            Application.Run(new DashboardForm(login.LoggedInName, services));
     }
-}   
+}
