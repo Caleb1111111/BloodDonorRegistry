@@ -97,16 +97,33 @@ public class DashboardForm : Form
             Location = new Point(70, 32)
         });
 
-        var footer = new Label
+        var footer = new Panel { Dock = DockStyle.Bottom, Height = 110, BackColor = UiTheme.Crimson };
+        footer.Controls.Add(new Label
         {
-            Dock = DockStyle.Bottom,
-            Height = 60,
             Text = $"Signed in as\n{_officerName}",
             ForeColor = Color.FromArgb(253, 220, 216),
             Font = new Font("Segoe UI", 9f),
-            TextAlign = ContentAlignment.MiddleLeft,
-            Padding = new Padding(20, 0, 0, 0)
+            AutoSize = true,
+            Location = new Point(20, 14)
+        });
+
+        var signOut = new Button
+        {
+            Text = "Sign out",
+            Location = new Point(20, 62),
+            Size = new Size(190, 34),
+            FlatStyle = FlatStyle.Flat,
+            ForeColor = Color.White,
+            BackColor = UiTheme.Crimson,
+            Font = UiTheme.Body,
+            Cursor = Cursors.Hand
         };
+        signOut.FlatAppearance.BorderSize = 1;
+        signOut.FlatAppearance.BorderColor = Color.FromArgb(253, 220, 216);
+        signOut.MouseEnter += (s, e) => signOut.BackColor = UiTheme.DeepRed;
+        signOut.MouseLeave += (s, e) => signOut.BackColor = UiTheme.Crimson;
+        signOut.Click += (s, e) => DialogResult = DialogResult.Retry;   // tells Program to show the login again
+        footer.Controls.Add(signOut);
 
         sidebar.Controls.Add(nav);      // Fill first
         sidebar.Controls.Add(header);

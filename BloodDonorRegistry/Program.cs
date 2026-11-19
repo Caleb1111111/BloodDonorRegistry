@@ -21,8 +21,14 @@ internal static class Program
             return;
         }
 
-        using var login = new LoginForm(services.Auth);
-        if (login.ShowDialog() == DialogResult.OK)
-            Application.Run(new DashboardForm(login.LoggedInName, services));
+        while (true)
+        {
+            using var login = new LoginForm(services.Auth);
+            if (login.ShowDialog() != DialogResult.OK) break;
+
+            using var dashboard = new DashboardForm(login.LoggedInName, services);
+            // Retry = the officer clicked "Sign out"; anything else closes the app
+            if (dashboard.ShowDialog() != DialogResult.Retry) break;
+        }
     }
 }

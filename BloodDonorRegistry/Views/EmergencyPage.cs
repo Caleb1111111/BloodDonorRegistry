@@ -11,6 +11,7 @@ public class EmergencyPage : UserControl
     private readonly ReadinessController _controller;
     private readonly ComboBox _group = new();
     private readonly Label _summary = new();
+    private readonly Label _hint = new();
     private readonly DataGridView _grid = new();
 
     public EmergencyPage(ReadinessController controller)
@@ -19,6 +20,7 @@ public class EmergencyPage : UserControl
         BackColor = UiTheme.Paper;
         Padding = new Padding(36, 0, 36, 30);
         BuildUi();
+        ShowHint("Choose a blood group above to see who can give today.");
     }
 
     private void BuildUi()
@@ -52,6 +54,10 @@ public class EmergencyPage : UserControl
         _summary.Location = new Point(220, 120);
         top.Controls.Add(_summary);
 
+        _hint.Dock = DockStyle.Fill;
+        _hint.TextAlign = ContentAlignment.MiddleCenter;
+        _hint.ForeColor = UiTheme.Muted;
+
         UiTheme.StyleGrid(_grid);
         _grid.Dock = DockStyle.Fill;
         AddColumn("Name", 180);
@@ -59,8 +65,11 @@ public class EmergencyPage : UserControl
         AddColumn("District", 110);
         AddColumn("Blood group", 80);
         AddColumn("Last donation", 120);
+        _grid.Columns[1].DefaultCellStyle.Font = UiTheme.Bold;   // the phone number matters most here
+        GridPills.Attach(_grid, new[] { 3 });
 
-        Controls.Add(_grid);   // Fill first
+        Controls.Add(_hint);   // Fill controls first
+        Controls.Add(_grid);
         Controls.Add(top);
     }
 
@@ -70,10 +79,22 @@ public class EmergencyPage : UserControl
         _grid.Columns[i].FillWeight = weight;
     }
 
+    private void ShowHint(string text)
+    {
+        _hint.Text = text;
+        _hint.Visible = true;
+        _grid.Visible = false;
+    }
+
     private void Reload()
     {
         _grid.Rows.Clear();
-        if (_group.SelectedItem is not string group) return;
+        if (_group.SelectedItem is not string group)
+        {
+            _summary.Text = "";
+            ShowHint("Choose a blood group above to see who can give today.");
+            return;
+        }
 
         try
         {
@@ -85,13 +106,16 @@ public class EmergencyPage : UserControl
 
             if (donors.Count == 0)
             {
-                _summary.ForeColor = UiTheme.Waiting;
+                _summary.ForeColor = UiTheme.Muted;
                 _summary.Text = $"No {group} donors are ready today.";
+                ShowHint($"No {group} donors can give today.\nCheck Readiness to see who is closest to being ready.");
             }
             else
             {
                 _summary.ForeColor = UiTheme.Ready;
                 _summary.Text = $"{donors.Count} {group} {(donors.Count == 1 ? "donor is" : "donors are")} ready today";
+                _hint.Visible = false;
+                _grid.Visible = true;
             }
         }
         catch (Exception)

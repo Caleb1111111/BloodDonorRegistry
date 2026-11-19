@@ -75,7 +75,7 @@ public class DonorsPage : UserControl
         edit.Click += (s, e) => EditSelected();
 
         var delete = new Button { Text = "Delete", Width = 90, Margin = new Padding(8, 0, 0, 0) };
-        UiTheme.StyleSecondaryButton(delete);
+        UiTheme.StyleDangerButton(delete);
         delete.Click += (s, e) => DeleteSelected();
 
         actions.Controls.Add(add);
@@ -93,6 +93,9 @@ public class DonorsPage : UserControl
         AddColumn("Phone", 110);
         AddColumn("District", 100);
         AddColumn("Age", 50);
+
+        UiTheme.AlignRight(_grid, 5);
+        GridPills.Attach(_grid, new[] { 2 });
 
         Controls.Add(_grid);   // Fill first
         Controls.Add(top);

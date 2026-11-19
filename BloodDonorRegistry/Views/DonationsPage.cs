@@ -51,7 +51,14 @@ public class DonationsPage : UserControl
         _count.Location = new Point(3, 76);
         top.Controls.Add(_count);
 
-        _filter.SetBounds(0, 108, 360, 30);
+        top.Controls.Add(new Label
+        {
+            Text = "Show donations for",
+            ForeColor = UiTheme.Muted,
+            AutoSize = true,
+            Location = new Point(0, 113)
+        });
+        _filter.SetBounds(150, 108, 360, 30);
         _filter.Font = UiTheme.Body;
         _filter.DropDownStyle = ComboBoxStyle.DropDownList;
         _filter.Items.Add("All donors");
@@ -82,6 +89,9 @@ public class DonationsPage : UserControl
         AddColumn("Blood group", 80);
         AddColumn("Place", 180);
         AddColumn("Amount (ml)", 90);
+
+        UiTheme.AlignRight(_grid, 4);
+        GridPills.Attach(_grid, new[] { 2 });
 
         Controls.Add(_grid);   // Fill first
         Controls.Add(top);

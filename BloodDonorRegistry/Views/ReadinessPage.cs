@@ -74,6 +74,9 @@ public class ReadinessPage : UserControl
         AddColumn("Days left", 70);
         AddColumn("Ready from", 110);
 
+        UiTheme.AlignRight(_grid, 4);
+        GridPills.Attach(_grid, new[] { 1 }, statusColumn: 3);
+
         Controls.Add(_grid);   // Fill first
         Controls.Add(top);
     }
@@ -95,17 +98,13 @@ public class ReadinessPage : UserControl
             _grid.Rows.Clear();
             foreach (var item in items)
             {
-                int i = _grid.Rows.Add(
+                _grid.Rows.Add(
                     item.Donor.FullName,
                     item.Donor.BloodGroup,
                     item.LastDonation?.ToString("d MMM yyyy") ?? "Never",
                     item.StatusText,
                     item.IsReady ? "–" : item.DaysLeft.ToString(),
-                    item.ReadyOn?.ToString("d MMM yyyy") ?? "–");
-
-                var cell = _grid.Rows[i].Cells[3];
-                cell.Style.ForeColor = item.IsReady ? UiTheme.Ready : UiTheme.Waiting;
-                cell.Style.Font = UiTheme.Bold;
+                    item.IsReady ? "–" : item.ReadyOn?.ToString("d MMM yyyy") ?? "–");
             }
 
             int ready = items.Count(x => x.IsReady);
