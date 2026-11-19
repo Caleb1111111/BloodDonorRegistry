@@ -37,4 +37,69 @@ public class DonorRepository : IDonorRepository
         }
         return result;
     }
+
+    public void Add(Donor donor)
+    {
+        using var conn = DbConnectionFactory.Create();
+        conn.Open();
+        using var cmd = new NpgsqlCommand(@"
+            INSERT INTO donors (national_id, full_name, phone, date_of_birth, district, blood_group)
+            VALUES (@n, @f, @p, @d, @di, @bg)", conn);
+        FillParameters(cmd, donor);
+        cmd.ExecuteNonQuery();
+    }
+
+    public void Update(Donor donor)
+    {
+        using var conn = DbConnectionFactory.Create();
+        conn.Open();
+        using var cmd = new NpgsqlCommand(@"
+            UPDATE donors
+            SET national_id = @n, full_name = @f, phone = @p,
+                date_of_birth = @d, district = @di, blood_group = @bg
+            WHERE donor_id = @id", conn);
+        FillParameters(cmd, donor);
+        cmd.Parameters.AddWithValue("id", donor.DonorId);
+        cmd.ExecuteNonQuery();
+    }
+
+    public void Delete(int donorId)
+    {
+        using var conn = DbConnectionFactory.Create();
+        conn.Open();
+        using var cmd = new NpgsqlCommand("DELETE FROM donors WHERE donor_id = @id", conn);
+        cmd.Parameters.AddWithValue("id", donorId);
+        cmd.ExecuteNonQuery();
+    }
+
+    public bool NationalIdExists(string nationalId, int excludeDonorId)
+    {
+        using var conn = DbConnectionFactory.Create();
+        conn.Open();
+        using var cmd = new NpgsqlCommand(
+            "SELECT EXISTS (SELECT 1 FROM donors WHERE national_id = @n AND donor_id <> @id)", conn);
+        cmd.Parameters.AddWithValue("n", nationalId);
+        cmd.Parameters.AddWithValue("id", excludeDonorId);
+        return (bool)cmd.ExecuteScalar()!;
+    }
+
+    public bool HasDonations(int donorId)
+    {
+        using var conn = DbConnectionFactory.Create();
+        conn.Open();
+        using var cmd = new NpgsqlCommand(
+            "SELECT EXISTS (SELECT 1 FROM donations WHERE donor_id = @id)", conn);
+        cmd.Parameters.AddWithValue("id", donorId);
+        return (bool)cmd.ExecuteScalar()!;
+    }
+
+    private static void FillParameters(NpgsqlCommand cmd, Donor d)
+    {
+        cmd.Parameters.AddWithValue("n", d.NationalId);
+        cmd.Parameters.AddWithValue("f", d.FullName);
+        cmd.Parameters.AddWithValue("p", d.Phone);
+        cmd.Parameters.Add("d", NpgsqlDbType.Date).Value = d.DateOfBirth.Date;
+        cmd.Parameters.AddWithValue("di", d.District);
+        cmd.Parameters.AddWithValue("bg", d.BloodGroup);
+    }
 }
