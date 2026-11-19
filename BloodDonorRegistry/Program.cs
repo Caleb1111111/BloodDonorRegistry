@@ -25,6 +25,8 @@ internal static class Program
 
         using var login = new LoginForm(auth);
         if (login.ShowDialog() == DialogResult.OK)
-            Application.Run(new DashboardForm(login.LoggedInName));
+            Application.Run(new DashboardForm(
+                login.LoggedInName,
+                new DonorController(new DonorRepository())));
     }
-}
+}   

@@ -1,22 +1,31 @@
 ﻿using System.Drawing;
 using System.Windows.Forms;
+using BloodDonorRegistry.Controllers;
 using BloodDonorRegistry.Helpers;
 
 namespace BloodDonorRegistry.Views;
 
 public class DashboardForm : Form
 {
-    private readonly Label _hint = new();
+    private readonly string _officerName;
+    private readonly DonorController _donors;
+    private readonly Panel _host = new() { Dock = DockStyle.Fill, BackColor = UiTheme.Paper };
+    private readonly List<Button> _navButtons = new();
+    private Button? _active;
 
-    public DashboardForm(string officerName)
+    public DashboardForm(string officerName, DonorController donors)
     {
+        _officerName = officerName;
+        _donors = donors;
+
         Text = "LifeDrop";
         ClientSize = new Size(1100, 680);
         MinimumSize = new Size(960, 600);
         UiTheme.StyleForm(this);
 
-        BuildContent(officerName);
-        BuildSidebar(officerName);
+        Controls.Add(_host);   // Fill first, so the sidebar docks before it
+        BuildSidebar();
+        Navigate("Dashboard");
     }
 
     private static string Greeting() => DateTime.Now.Hour switch
@@ -26,7 +35,36 @@ public class DashboardForm : Form
         _ => "Good evening"
     };
 
-    private void BuildSidebar(string officerName)
+    // ---------- Navigation ----------
+
+    private void Navigate(string name)
+    {
+        _active = _navButtons.First(b => b.Text == name);
+        foreach (var b in _navButtons)
+            b.BackColor = b == _active ? UiTheme.DeepRed : UiTheme.Crimson;
+
+        Control page = name switch
+        {
+            "Dashboard" => BuildHomePage(),
+            "Donors" => new DonorsPage(_donors),
+            _ => BuildComingSoon(name)
+        };
+        ShowPage(page);
+    }
+
+    private void ShowPage(Control page)
+    {
+        var old = _host.Controls.Cast<Control>().ToList();
+        _host.Controls.Clear();
+        foreach (var c in old) c.Dispose();
+
+        page.Dock = DockStyle.Fill;
+        _host.Controls.Add(page);
+    }
+
+    // ---------- Sidebar ----------
+
+    private void BuildSidebar()
     {
         var sidebar = new Panel { Dock = DockStyle.Left, Width = 230, BackColor = UiTheme.Crimson };
 
@@ -57,7 +95,7 @@ public class DashboardForm : Form
         {
             Dock = DockStyle.Bottom,
             Height = 60,
-            Text = $"Signed in as\n{officerName}",
+            Text = $"Signed in as\n{_officerName}",
             ForeColor = Color.FromArgb(253, 220, 216),
             Font = new Font("Segoe UI", 9f),
             TextAlign = ContentAlignment.MiddleLeft,
@@ -87,25 +125,28 @@ public class DashboardForm : Form
             Cursor = Cursors.Hand
         };
         b.FlatAppearance.BorderSize = 0;
-        b.MouseEnter += (s, e) => b.BackColor = UiTheme.DeepRed;
-        b.MouseLeave += (s, e) => b.BackColor = UiTheme.Crimson;
-        b.Click += (s, e) => _hint.Text = $"{text} will appear here – coming in the next stage.";
+        b.MouseEnter += (s, e) => { if (b != _active) b.BackColor = Color.FromArgb(155, 26, 26); };
+        b.MouseLeave += (s, e) => { if (b != _active) b.BackColor = UiTheme.Crimson; };
+        b.Click += (s, e) => Navigate(text);
+        _navButtons.Add(b);
         return b;
     }
 
-    private void BuildContent(string officerName)
-    {
-        var content = new Panel { Dock = DockStyle.Fill, BackColor = UiTheme.Paper };
-        string firstName = officerName.Split(' ')[0];
+    // ---------- Pages ----------
 
-        content.Controls.Add(new Label
+    private Control BuildHomePage()
+    {
+        var page = new Panel { BackColor = UiTheme.Paper };
+        string firstName = _officerName.Split(' ')[0];
+
+        page.Controls.Add(new Label
         {
             Text = $"{Greeting()}, {firstName}",
             Font = UiTheme.Title,
             AutoSize = true,
             Location = new Point(36, 30)
         });
-        content.Controls.Add(new Label
+        page.Controls.Add(new Label
         {
             Text = DateTime.Now.ToString("dddd, d MMMM yyyy"),
             ForeColor = UiTheme.Muted,
@@ -122,18 +163,32 @@ public class DashboardForm : Form
         cards.Controls.Add(Card("Registered donors"));
         cards.Controls.Add(Card("Ready to give today"));
         cards.Controls.Add(Card("Donations this month"));
-        content.Controls.Add(cards);
+        page.Controls.Add(cards);
 
-        _hint.Text = "Pick a section on the left to begin.";
-        _hint.ForeColor = UiTheme.Muted;
-        _hint.AutoSize = true;
-        _hint.Location = new Point(39, 275);
-        content.Controls.Add(_hint);
-
-        Controls.Add(content);
+        return page;
     }
 
-    private Panel Card(string caption)
+    private static Control BuildComingSoon(string name)
+    {
+        var page = new Panel { BackColor = UiTheme.Paper };
+        page.Controls.Add(new Label
+        {
+            Text = name,
+            Font = UiTheme.Title,
+            AutoSize = true,
+            Location = new Point(36, 30)
+        });
+        page.Controls.Add(new Label
+        {
+            Text = "Coming in the next stage.",
+            ForeColor = UiTheme.Muted,
+            AutoSize = true,
+            Location = new Point(39, 76)
+        });
+        return page;
+    }
+
+    private static Panel Card(string caption)
     {
         var card = new Panel { Size = new Size(240, 104), BackColor = Color.White, Margin = new Padding(0, 0, 20, 0) };
         card.Paint += (s, e) =>
@@ -158,4 +213,4 @@ public class DashboardForm : Form
         });
         return card;
     }
-}
+}   
