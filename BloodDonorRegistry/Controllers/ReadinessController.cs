@@ -36,6 +36,37 @@ public class ReadinessController
             .OrderBy(x => x.LastDonation ?? DateTime.MinValue)
             .ToList();
 
+    // Compatible donors: exact match first, then compatible groups, all Ready.
+    // Returns (donor, isExactMatch) so the UI can distinguish them.
+    public List<(DonorReadiness Item, bool IsExact)> EmergencyCompatible(string bloodGroup)
+    {
+        var exact = Emergency(bloodGroup).Select(x => (x, true));
+
+        var compatible = CompatibleDonorGroups(bloodGroup)
+            .SelectMany(g => Emergency(g))
+            .Select(x => (x, false));
+
+        return exact
+            .Concat(compatible)
+            .DistinctBy(t => t.x.Donor.DonorId)
+            .ToList();
+    }
+
+    // Returns the blood groups whose donors can donate to the given recipient group.
+    public static IEnumerable<string> CompatibleDonorGroups(string recipientGroup)
+        => recipientGroup switch
+        {
+            "A+"  => new[] { "A-", "O+", "O-" },
+            "A-"  => new[] { "O-" },
+            "B+"  => new[] { "B-", "O+", "O-" },
+            "B-"  => new[] { "O-" },
+            "AB+" => new[] { "A-", "B-", "O+", "O-", "A+", "B+", "AB-" },
+            "AB-" => new[] { "A-", "B-", "O-" },
+            "O+"  => new[] { "O-" },
+            "O-"  => Array.Empty<string>(),
+            _     => Array.Empty<string>()
+        };
+
     private static void Evaluate(DonorReadiness item, int months)
     {
         if (item.LastDonation is null)

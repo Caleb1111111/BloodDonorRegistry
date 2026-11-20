@@ -7,7 +7,7 @@ namespace BloodDonorRegistry.Helpers;
 // Draws blood groups and Ready/Waiting statuses as small rounded "pills".
 public static class GridPills
 {
-    public static void Attach(DataGridView grid, int[] bloodGroupColumns, int statusColumn = -1)
+    public static void Attach(DataGridView grid, int[] bloodGroupColumns, int statusColumn = -1, int matchColumn = -1)
     {
         grid.CellPainting += (s, e) =>
         {
@@ -19,6 +19,13 @@ public static class GridPills
                 Paint(e, text,
                     ready ? Color.FromArgb(225, 243, 226) : Color.FromArgb(255, 236, 212),
                     ready ? Color.FromArgb(27, 94, 32) : Color.FromArgb(140, 70, 0));
+            }
+            else if (e.ColumnIndex == matchColumn)
+            {
+                bool exact = text == "Exact match";
+                Paint(e, text,
+                    exact ? Color.FromArgb(225, 243, 226) : Color.FromArgb(232, 240, 254),
+                    exact ? Color.FromArgb(27, 94, 32)   : Color.FromArgb(25, 80, 170));
             }
             else if (Array.IndexOf(bloodGroupColumns, e.ColumnIndex) >= 0)
             {

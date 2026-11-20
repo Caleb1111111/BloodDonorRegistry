@@ -65,8 +65,9 @@ public class EmergencyPage : UserControl
         AddColumn("District", 110);
         AddColumn("Blood group", 80);
         AddColumn("Last donation", 120);
+        AddColumn("Match", 90);
         _grid.Columns[1].DefaultCellStyle.Font = UiTheme.Bold;   // the phone number matters most here
-        GridPills.Attach(_grid, new[] { 3 });
+        GridPills.Attach(_grid, new[] { 3 }, matchColumn: 5);
 
         Controls.Add(_hint);   // Fill controls first
         Controls.Add(_grid);
@@ -98,22 +99,29 @@ public class EmergencyPage : UserControl
 
         try
         {
-            var donors = _controller.Emergency(group);
-            foreach (var item in donors)
-                _grid.Rows.Add(item.Donor.FullName, item.Donor.Phone, item.Donor.District,
-                               item.Donor.BloodGroup,
-                               item.LastDonation?.ToString("d MMM yyyy") ?? "Never");
+            var results = _controller.EmergencyCompatible(group);
+            foreach (var (item, isExact) in results)
+                _grid.Rows.Add(
+                    item.Donor.FullName,
+                    item.Donor.Phone,
+                    item.Donor.District,
+                    item.Donor.BloodGroup,
+                    item.LastDonation?.ToString("d MMM yyyy") ?? "Never",
+                    isExact ? "Exact match" : "Compatible");
 
-            if (donors.Count == 0)
+            int exact = results.Count(t => t.IsExact);
+            int compat = results.Count - exact;
+
+            if (results.Count == 0)
             {
                 _summary.ForeColor = UiTheme.Muted;
-                _summary.Text = $"No {group} donors are ready today.";
-                ShowHint($"No {group} donors can give today.\nCheck Readiness to see who is closest to being ready.");
+                _summary.Text = $"No {group} or compatible donors are ready today.";
+                ShowHint($"No donors compatible with {group} can give today.\nCheck Readiness to see who is closest to being ready.");
             }
             else
             {
                 _summary.ForeColor = UiTheme.Ready;
-                _summary.Text = $"{donors.Count} {group} {(donors.Count == 1 ? "donor is" : "donors are")} ready today";
+                _summary.Text = $"{exact} exact · {compat} compatible ready today";
                 _hint.Visible = false;
                 _grid.Visible = true;
             }

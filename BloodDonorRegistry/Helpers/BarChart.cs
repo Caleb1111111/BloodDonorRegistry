@@ -49,7 +49,7 @@ public class BarChart : Control
             int w = value == 0 ? 0 : Math.Max(4, (int)((long)barMaxW * value / max));
             if (w > 0)
             {
-                using var path = RoundedRect(new Rectangle(barX, y + 5, w, rowH - 10), Math.Min(4, w / 2));
+                using var path = UiTheme.RoundedRect(new Rectangle(barX, y + 5, w, rowH - 10), Math.Min(4, w / 2));
                 using var brush = new SolidBrush(UiTheme.Crimson);
                 g.FillPath(brush, path);
             }
@@ -60,15 +60,4 @@ public class BarChart : Control
         }
     }
 
-    private static GraphicsPath RoundedRect(Rectangle r, int radius)
-    {
-        int d = Math.Max(1, radius * 2);
-        var p = new GraphicsPath();
-        p.AddArc(r.X, r.Y, d, d, 180, 90);
-        p.AddArc(r.Right - d, r.Y, d, d, 270, 90);
-        p.AddArc(r.Right - d, r.Bottom - d, d, d, 0, 90);
-        p.AddArc(r.X, r.Bottom - d, d, d, 90, 90);
-        p.CloseFigure();
-        return p;
-    }
 }
